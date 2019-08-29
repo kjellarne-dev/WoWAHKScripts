@@ -7,7 +7,8 @@ To start using the script:
 
 
 
- Shortcuts
+# Shortcuts
+ 
 
    Toggle Auto jump
    
