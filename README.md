@@ -32,6 +32,7 @@ To start using the script:
    Toggle Auto Detect Queue Pop
    
    Shift + CTRL + F10
+   
        Tired of having to wait in front of your computer for the queue to pop?
        This function automatically detects when the queue wait is over
        (Aka when the client is in the character select screen)
