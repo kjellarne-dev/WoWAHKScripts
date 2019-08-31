@@ -7,7 +7,8 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 ; World of Warcraft anti disconnect script
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Written by Kjella
-; Date: 29. August 2019
+; Date: 31. August 2019
+; Version: 1.2
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Shortcuts
@@ -22,6 +23,7 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 ;       Then logs back in after waiting 20-25 minutes
 ;       Then logs back off after 2-3 minutes
 ;       Rinse & Repeat
+;
 ;       NOTE: This function assumes that you are logged in to your character
 ;
 ;   Toggle Auto Detect Queue Pop
@@ -30,18 +32,31 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 ;       This function automatically detects when the queue wait is over
 ;       (Aka when the client is in the character select screen)
 ;       It then logs in to your character and enable the auto logout manipulation
-;       NOTE: This function assumes that you are in a server queue already
+;       It can even send a message to your Discord channel of choice - see under "VARIABLES"
+;
 ;       TO DISABLE BEFORE QUEUE IS OVER: Use shortcut for Auto Detect Queue Pop
 ;       TO DISABLE AFTER QUEUE IS OVER: Use shortcut for Auto Logout Manipulation
+;       
+;       NOTE: This function assumes that you are in a server queue already
 ;       NOTE: wow.png must be included and stored in the same folder as the script
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; SYSTEM VARIABLES
+; VARIABLES
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Get window ID for World of Warcraft and make it global
 WinGet, wowid, ID, World of Warcraft
 Global wowid
+
+; Discord Message - Replace 0 with 1 here if you would like to recieve a message to a discord channel when your queue pops
+EnableDiscordMessage := 0
+
+; Type in your Discord API token if you enable DiscordMessage (How to get a webhook for Discord: https://support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks )
+DiscordWebhook := ""
+Global DiscordWebhook
+
+; Type in the message you would like to send to Discord
+DiscordMessageContent := "Your World of Warcraft queue just popped!"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; FUNCTIONS
@@ -77,6 +92,16 @@ SendChatCommand(command) {
 
     ;Closing chat box
     ControlSend,, {Enter}, ahk_id %wowid%
+}
+
+SendDiscordMessage(DiscordMessage) {
+
+    Text := StrReplace(StrReplace(DiscordMessage, "\", "\\"), """", "\""")
+    Http := ComObjCreate("WinHTTP.WinHTTPRequest.5.1")
+    Http.Open("POST", DiscordWebhook, False)
+    Http.SetRequestHeader("Content-Type", "application/json")
+    Http.Send("{""content"": """ Text """}")
+
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -147,6 +172,8 @@ AutodetectQueuePop:
     ; 2 second sleep so the user has time to release shortcut keys before progressing
     Sleep 2000
 
+    MsgBox Auto detect queue pop enabled
+
     ; While loop keeps script running
     while (EnableAutodetectQueuePop) {
         ; Get World of Warcraft window location and size
@@ -168,6 +195,11 @@ AutodetectQueuePop:
         }
         else {
             ; Image was found. Client is currently at the character select screen.
+            ; Sending message to Discord if user has elected to do so
+            If (EnableDiscordMessage) {
+                SendDiscordMessage(DiscordMessageContent)
+            }
+
             ; First enter the world, then start LogOutManipulation so the client doesn't disconnect
             ControlSend,, {Enter}, ahk_id %wowid%
 
