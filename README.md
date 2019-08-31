@@ -11,7 +11,6 @@ To start using the script:
  
 
    Toggle Auto jump
-   
    Shift + CTRL + F8
    
        Jumps (presses space) once every 200-280 seconds
@@ -19,7 +18,6 @@ To start using the script:
 
 
    Toggle Auto Logout Manipulation
-   
    Shift + CTRL + F9
    
        Logs off to character select screen (30m timeout)
