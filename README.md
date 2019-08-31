@@ -26,6 +26,8 @@ To start using the script:
        Then logs back in after waiting 20-25 minutes
        Then log backs off after 2-3 minutes
        Rinse & Repeat
+       
+       NOTE: This function assumes that you are logged in to your character
 
 
 
@@ -37,7 +39,9 @@ To start using the script:
        This function automatically detects when the queue wait is over
        (Aka when the client is in the character select screen)
        It then logs in to your character and enable the auto logout manipulation
+       
        TO DISABLE BEFORE QUEUE IS OVER: Use shortcut for Auto Detect Queue Pop
        TO DISABLE AFTER QUEUE IS OVER: Use shortcut for Auto Logout Manipulation
+       
        NOTE: This function assumes that you are in a server queue already
        NOTE: wow.png must be included and stored in the same folder as the script
