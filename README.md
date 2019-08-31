@@ -14,7 +14,7 @@ To start using the script:
    
    Shift + CTRL + F8
    
-       Autojumps once every 200-280 seconds
+       Jumps (presses space) once every 200-280 seconds
 
 
 
@@ -23,10 +23,7 @@ To start using the script:
    Shift + CTRL + F9
    
        Logs off to character select screen (30m timeout)
-       
        Then logs back in after waiting 20-25 minutes
-       
        Then log backs off after 2-3 minutes
-       
        Rinse & Repeat
        
