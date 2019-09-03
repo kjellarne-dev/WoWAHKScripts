@@ -3,8 +3,10 @@ World of Warcraft Autohotkey scripts
 
 To start using the script:
 1. Install Autohotkey
-2. Double click on the script to send it to the system tray
+2. Download WoW_AntiAFKScript.ahk, delete_character.png and Gehennas_realm.png to the same folder
+3. Double click on the script to send it to the system tray
 
+Then you should be all set and ready to use the shortcuts listed below
 
 
 # Shortcuts
@@ -45,3 +47,12 @@ To start using the script:
        
        NOTE: This function assumes that you are in a server queue already
        NOTE: wow.png must be included and stored in the same folder as the script
+
+
+
+   Launch WoW with queuedetection
+   
+   Shift + CTRL + F11
+   
+       Launches World of Warcraft, connects to a realm of your choice
+       And starts Auto Detect Queue Pop function
