@@ -4,7 +4,8 @@ World of Warcraft Autohotkey scripts
 To start using the script:
 1. Install Autohotkey
 2. Download WoW_AntiAFKScript.ahk, delete_character.png and Gehennas_realm.png to the same folder
-3. Double click on the script to send it to the system tray
+3. Read through the variables section of the script. Make sure that the location of the World of Warcraft Launcher is correct.
+4. Double click on the script to send it to the system tray
 
 Then you should be all set and ready to use the shortcuts listed below
 
