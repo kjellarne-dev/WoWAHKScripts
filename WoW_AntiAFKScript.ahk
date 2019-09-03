@@ -8,7 +8,7 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Written by Kjella
 ; Date: 2019-09-03
-; Version: 1.3
+; Version: 1.4
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Shortcuts
@@ -59,8 +59,18 @@ WoWLauncherExe := "C:\Program Files (x86)\World of Warcraft\World of Warcraft La
 ; Print screen image of the realm name that you wish to connect to (required for F11 shortcut)
 RealmOCRImage := ".\Gehennas_realm.png"
 
-; Discord Message - Replace 0 with 1 here if you would like to recieve a message to a discord channel when your queue pops
+; Print screen image of something that only exist on the character select screen
+CharacterSelectOCRImage := ".\delete_character.png"
+
+; Automatically start WoW at a specific time. 0 = Disabled, 1 = Enabled
+EnableAutoStartWoW := 0
+
+; If EnableAutoStartWoW is enabled - specifiy when you want WoW to start here (format: HHmm. Eg 2359 for 23:59)
+AutoStartWoWTime := 1155
+
+; Discord Message - Enable if you would like to recieve a message to a discord channel when your queue pops. 0 = Disabled, 1 = Enabled
 EnableDiscordMessage := 0
+Global EnableDiscordMessage
 
 ; Type in your Discord API token if you enable DiscordMessage (How to get a webhook for Discord: https://support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks )
 DiscordWebhook := "https://discordapp.com/api/webhooks/x/x"
@@ -106,14 +116,41 @@ SendChatCommand(command) {
 }
 
 SendDiscordMessage(DiscordMessage) {
-
-    Text := StrReplace(StrReplace(DiscordMessage, "\", "\\"), """", "\""")
-    Http := ComObjCreate("WinHTTP.WinHTTPRequest.5.1")
-    Http.Open("POST", DiscordWebhook, False)
-    Http.SetRequestHeader("Content-Type", "application/json")
-    Http.Send("{""content"": """ Text """}")
-
+    If (EnableDiscordMessage) {
+        Text := StrReplace(StrReplace(DiscordMessage, "\", "\\"), """", "\""")
+        Http := ComObjCreate("WinHTTP.WinHTTPRequest.5.1")
+        Http.Open("POST", DiscordWebhook, False)
+        Http.SetRequestHeader("Content-Type", "application/json")
+        Http.Send("{""content"": """ Text """}")
+    }
 }
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; STARTUP COMMANDS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Start Chronos every 500 ms
+If (EnableAutoStartWoW) {
+    AutoStartWoW := !AutoStartWoW
+    SetTimer, Chronos, -1
+}
+Return
+
+Chronos:
+    While (AutoStartWoW) {
+        FormatTime, TimeToMeet,,HHmm
+        ; If you want the script to start at 7 am put change 1006 to 700
+        If (TimeToMeet = AutoStartWoWTime) {
+            SendDiscordMessage("Starting World of Warcraft at "AutoStartWoWTime)
+
+            ; Run the Start WoW function
+            SetTimer, StartWoWAndAutodetectQueuePop, -1
+
+            ; Turn off AutoStartWoW
+            AutoStartWoW := !AutoStartWoW
+        }
+    }
+Return
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; SHORTCUTS
@@ -188,11 +225,9 @@ Return ; End LogOutManipulation
 AutodetectQueuePop:
     ; 2 second sleep so the user has time to release shortcut keys before progressing
     Sleep 2000
-
+    SendDiscordMessage("Started AutodetectQueuePop")
     ; While loop keeps script running
-    while (EnableAutodetectQueuePop) {
-        OCRImage := ".\delete_character.png"
-        
+    while (EnableAutodetectQueuePop) {      
         ; Get World of Warcraft window location and size
         WinGetPos, xPos, yPos, WinWidth, WinHeight, ahk_id %wowid%
 
@@ -201,10 +236,10 @@ AutodetectQueuePop:
         endyPos := yPos + WinHeight
 
         ; Search the WoW window for the image specified above
-        ImageSearch, x, y, %xPos%, %yPos%, %endxPos%, %endyPos%, *5 %OCRImage%
+        ImageSearch, x, y, %xPos%, %yPos%, %endxPos%, %endyPos%, *5 %CharacterSelectOCRImage%
 
         if (ErrorLevel = 2) {
-            MsgBox AutoDetectQueuePop image search failed miserably. Did you include %OCRImage% in the root folder of this script?
+            MsgBox AutoDetectQueuePop image search failed miserably. Did you include %CharacterSelectOCRImage% in the root folder of this script?
         }
         else if (ErrorLevel = 1) {
             ; Image was not found, assuming that client is still in queue. Sleep for 60 seconds before checking again
@@ -213,9 +248,7 @@ AutodetectQueuePop:
         else {
             ; Image was found. Client is currently at the character select screen.
             ; Sending message to Discord if user has elected to do so
-            If (EnableDiscordMessage) {
-                SendDiscordMessage(DiscordMessageContent)
-            }
+            SendDiscordMessage(DiscordMessageContent)
 
             ; Sleep for 30 seconds to make sure that all required assets are loaded
             Sleep 30000
