@@ -8,7 +8,7 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Written by Kjella
 ; Date: 2019-09-03
-; Version: 1.4
+; Version: 1.4.1
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Shortcuts
@@ -48,10 +48,6 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; VARIABLES
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-; Get window ID for World of Warcraft and make it global
-WinGet, wowid, ID, World of Warcraft
-Global wowid
 
 ; World of Warcraft Classic Launcher exe location
 WoWLauncherExe := "C:\Program Files (x86)\World of Warcraft\World of Warcraft Launcher.exe"
@@ -128,6 +124,10 @@ SendDiscordMessage(DiscordMessage) {
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; STARTUP COMMANDS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Get window ID for World of Warcraft and make it global
+WinGet, wowid, ID, World of Warcraft
+Global wowid
 
 ; Start Chronos every 500 ms
 If (EnableAutoStartWoW) {
