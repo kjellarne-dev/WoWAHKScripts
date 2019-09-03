@@ -7,8 +7,8 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 ; World of Warcraft anti disconnect script
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Written by Kjella
-; Date: 31. August 2019
-; Version: 1.2
+; Date: 2019-09-03
+; Version: 1.3
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; Shortcuts
@@ -32,13 +32,18 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 ;       This function automatically detects when the queue wait is over
 ;       (Aka when the client is in the character select screen)
 ;       It then logs in to your character and enable the auto logout manipulation
-;       It can even send a message to your Discord channel of choice - see under "VARIABLES"
+;       It can even send a message to your Discord channel of choice - see below
 ;
 ;       TO DISABLE BEFORE QUEUE IS OVER: Use shortcut for Auto Detect Queue Pop
 ;       TO DISABLE AFTER QUEUE IS OVER: Use shortcut for Auto Logout Manipulation
 ;       
 ;       NOTE: This function assumes that you are in a server queue already
 ;       NOTE: wow.png must be included and stored in the same folder as the script
+;
+;   Launch WoW with queuedetection
+;   Shift + CTRL + F11
+;       Launches World of Warcraft, connects to a realm of your choice
+;       And starts Auto Detect Queue Pop function
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; VARIABLES
@@ -48,11 +53,17 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 WinGet, wowid, ID, World of Warcraft
 Global wowid
 
+; World of Warcraft Classic Launcher exe location
+WoWLauncherExe := "C:\Program Files (x86)\World of Warcraft\World of Warcraft Launcher.exe"
+
+; Print screen image of the realm name that you wish to connect to (required for F11 shortcut)
+RealmOCRImage := ".\Gehennas_realm.png"
+
 ; Discord Message - Replace 0 with 1 here if you would like to recieve a message to a discord channel when your queue pops
 EnableDiscordMessage := 0
 
 ; Type in your Discord API token if you enable DiscordMessage (How to get a webhook for Discord: https://support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks )
-DiscordWebhook := ""
+DiscordWebhook := "https://discordapp.com/api/webhooks/x/x"
 Global DiscordWebhook
 
 ; Type in the message you would like to send to Discord
@@ -123,7 +134,13 @@ return
 ; Shift + CTRL + F10
 $^+F10::
     EnableAutodetectQueuePop := !EnableAutodetectQueuePop
+    MsgBox Auto detect queue pop enabled
     SetTimer, AutodetectQueuePop, -1
+return
+
+; Shift + CTRL + F11
+$^+F11::
+    SetTimer, StartWoWAndAutodetectQueuePop, -1
 return
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -172,10 +189,10 @@ AutodetectQueuePop:
     ; 2 second sleep so the user has time to release shortcut keys before progressing
     Sleep 2000
 
-    MsgBox Auto detect queue pop enabled
-
     ; While loop keeps script running
     while (EnableAutodetectQueuePop) {
+        OCRImage := ".\delete_character.png"
+        
         ; Get World of Warcraft window location and size
         WinGetPos, xPos, yPos, WinWidth, WinHeight, ahk_id %wowid%
 
@@ -183,11 +200,11 @@ AutodetectQueuePop:
         endxPos := xPos + WinWidth
         endyPos := yPos + WinHeight
 
-        ; Search for the image specified below
-        ImageSearch, x, y, %xPos%, %yPos%, %endxPos%, %endyPos%, .\wow.png
+        ; Search the WoW window for the image specified above
+        ImageSearch, x, y, %xPos%, %yPos%, %endxPos%, %endyPos%, *5 %OCRImage%
 
         if (ErrorLevel = 2) {
-            MsgBox AutodetectQueuePop failed miserably. For some reason it is unable to search the WoW window for character select screen
+            MsgBox AutoDetectQueuePop image search failed miserably. Did you include %OCRImage% in the root folder of this script?
         }
         else if (ErrorLevel = 1) {
             ; Image was not found, assuming that client is still in queue. Sleep for 60 seconds before checking again
@@ -200,18 +217,77 @@ AutodetectQueuePop:
                 SendDiscordMessage(DiscordMessageContent)
             }
 
-            ; First enter the world, then start LogOutManipulation so the client doesn't disconnect
+            ; Sleep for 30 seconds to make sure that all required assets are loaded
+            Sleep 30000
+
+            ; Press enter to enter the world
             ControlSend,, {Enter}, ahk_id %wowid%
 
             ; Wait for the world to finish loading.
             Random, r, 180000, 240000
             Sleep r
 
+            ; Start the logoutmanipulation-function so the account stays signed in
             EnableLogOutManipulation := !EnableLogOutManipulation
             SetTimer, LogOutManipulation, -1
 
             ; Disable AutodetectQueuePop so it doesn't keep running in the background
             EnableAutodetectQueuePop := !EnableAutodetectQueuePop
+            Sleep 2000
         }
     }
 Return ; End AutodetectQueuePop
+
+StartWoWAndAutodetectQueuePop:
+    ; Start battle.net launcher
+    Run %WoWLauncherExe%
+
+    ; Sleep for 10 seconds to make sure that all required assets are loaded
+    Sleep 10000
+
+    ; Get window ID for Battle.net
+    WinGet, battlenetid, ID, Blizzard Battle.net
+
+    ; Press enter to start World of Warcraft
+    ControlSend,, {Enter}, ahk_id %battlenetid%
+
+    ; Sleep for 15 seconds so WoW can launch and log in
+    Sleep 15000
+
+    ; Get World of Warcraft window ID, so the other functions are able to use it
+    WinGet, wowid, ID, World of Warcraft
+    Global wowid
+    Sleep 1000
+    
+    ; Get World of Warcraft window location and size
+    WinGetPos, xPos, yPos, WinWidth, WinHeight, ahk_id %wowid%
+
+    CoordMode, Pixel, Screen
+    endxPos := xPos + WinWidth
+    endyPos := yPos + WinHeight
+
+    ; Search the WoW window for the image specified above
+    ImageSearch, x, y, %xPos%, %yPos%, %endxPos%, %endyPos%, *5 %RealmOCRImage%
+
+    if (ErrorLevel = 2) {
+        MsgBox AutoDetectQueuePop image search failed miserably. Did you include %RealmOCRImage% in the root folder of this script?
+    }
+    else if (ErrorLevel = 1) {
+        ; Image was not found, assuming that client is still in queue. Sleep for 60 seconds before checking again
+        MsgBox Did not find %RealmOCRImage% on the screen
+    }
+    else {
+        ; Doubleclick on the realm to log into it
+        x := x + 20
+        y := y + 20
+        MouseClick, Left, x, y, 2, 45
+
+        ; 10 second sleep
+        Sleep 10000
+
+        ; Enable AutodetectQueuePop
+        EnableAutodetectQueuePop := !EnableAutodetectQueuePop
+        SetTimer, AutodetectQueuePop, -1
+    }
+
+Return ; End StartWoWAndAutodetectQueuePop
