@@ -47,7 +47,7 @@ Then you should be all set and ready to use the shortcuts listed below
        TO DISABLE AFTER QUEUE IS OVER: Use shortcut for Auto Logout Manipulation
        
        NOTE: This function assumes that you are in a server queue already
-       NOTE: wow.png must be included and stored in the same folder as the script
+       NOTE: The PNG files must be included and stored in the same folder as the script
 
 
 
